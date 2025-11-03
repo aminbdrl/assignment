@@ -1,3 +1,5 @@
+pip install prettytable
+
 import csv
 import random
 from prettytable import PrettyTable   # ✅ For neat display (make sure to install: pip install prettytable)
