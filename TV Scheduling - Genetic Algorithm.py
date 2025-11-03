@@ -1,289 +1,141 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Settings, TrendingUp, Clock, Tv } from 'lucide-react';
+import streamlit as st
+import pandas as pd
+import csv
+import random
+import matplotlib.pyplot as plt
 
-const TVScheduleGA = () => {
-  const [isRunning, setIsRunning] = useState(false);
-  const [generation, setGeneration] = useState(0);
-  const [bestFitness, setBestFitness] = useState(0);
-  const [schedule, setSchedule] = useState([]);
-  const [fitnessHistory, setFitnessHistory] = useState([]);
-  const [showSettings, setShowSettings] = useState(false);
-  
-  // GA Parameters
-  const [params, setParams] = useState({
-    generations: 100,
-    populationSize: 50,
-    crossoverRate: 0.8,
-    mutationRate: 0.2,
-    elitismSize: 2
-  });
+# ================================
+# STREAMLIT APP HEADER
+# ================================
+st.set_page_config(page_title="TV Scheduling Optimizer", layout="wide")
+st.title("📺 TV Scheduling Optimization using Genetic Algorithm")
+st.write("Upload your CSV file containing program ratings by time slot, and the app will find the optimal TV schedule for maximum total ratings.")
 
-  // Sample programs and ratings
-  const programs = ['News', 'Drama', 'Comedy', 'Sports', 'Reality', 'Documentary'];
-  const timeSlots = Array.from({ length: 18 }, (_, i) => i + 6);
-  
-  // Generate random ratings for demo
-  const generateRatings = () => {
-    const ratings = {};
-    programs.forEach(program => {
-      ratings[program] = timeSlots.map(() => Math.random() * 10);
-    });
-    return ratings;
-  };
+# ================================
+# UPLOAD CSV
+# ================================
+uploaded_file = st.file_uploader("📂 Upload your 'program_ratings.csv' file", type=["csv"])
 
-  const [ratings] = useState(generateRatings());
+if uploaded_file is not None:
+    # Read CSV into dictionary
+    def read_csv_to_dict(file):
+        program_ratings = {}
+        reader = csv.reader(file.read().decode('utf-8').splitlines())
+        header = next(reader)
+        for row in reader:
+            program = row[0]
+            ratings = [float(x) for x in row[1:]]
+            program_ratings[program] = ratings
+        return program_ratings
 
-  const calculateFitness = (sched) => {
-    return sched.reduce((total, program, idx) => {
-      return total + (ratings[program]?.[idx] || 0);
-    }, 0);
-  };
+    program_ratings_dict = read_csv_to_dict(uploaded_file)
+    ratings = program_ratings_dict
 
-  const createRandomSchedule = () => {
-    return timeSlots.map(() => programs[Math.floor(Math.random() * programs.length)]);
-  };
+    # ================================
+    # PARAMETERS
+    # ================================
+    GEN = st.sidebar.number_input("Generations", 10, 500, 100)
+    POP = st.sidebar.number_input("Population Size", 10, 200, 50)
+    CO_R = st.sidebar.slider("Crossover Rate", 0.0, 1.0, 0.8)
+    MUT_R = st.sidebar.slider("Mutation Rate", 0.0, 1.0, 0.2)
+    EL_S = st.sidebar.number_input("Elitism Size", 1, 10, 2)
 
-  const crossover = (parent1, parent2) => {
-    const point = Math.floor(Math.random() * (parent1.length - 2)) + 1;
-    const child1 = [...parent1.slice(0, point), ...parent2.slice(point)];
-    const child2 = [...parent2.slice(0, point), ...parent1.slice(point)];
-    return [child1, child2];
-  };
+    all_programs = list(ratings.keys())
+    all_time_slots = list(range(6, 24))  # 6 AM to 11 PM
 
-  const mutate = (sched) => {
-    const newSched = [...sched];
-    const point = Math.floor(Math.random() * newSched.length);
-    newSched[point] = programs[Math.floor(Math.random() * programs.length)];
-    return newSched;
-  };
+    # ================================
+    # FITNESS FUNCTION
+    # ================================
+    def fitness_function(schedule):
+        total_rating = 0
+        for time_slot, program in enumerate(schedule):
+            total_rating += ratings[program][time_slot]
+        return total_rating
 
-  const runGeneticAlgorithm = () => {
-    let population = Array(params.populationSize).fill(null).map(() => createRandomSchedule());
-    let currentGen = 0;
-    let history = [];
+    # ================================
+    # INITIALIZATION
+    # ================================
+    def initialize_population(programs, size):
+        population = []
+        for _ in range(size):
+            schedule = random.sample(programs, len(programs))
+            population.append(schedule)
+        return population
 
-    const interval = setInterval(() => {
-      if (currentGen >= params.generations) {
-        clearInterval(interval);
-        setIsRunning(false);
-        return;
-      }
+    # ================================
+    # GENETIC OPERATORS
+    # ================================
+    def crossover(parent1, parent2):
+        point = random.randint(1, len(parent1) - 2)
+        child1 = parent1[:point] + [p for p in parent2 if p not in parent1[:point]]
+        child2 = parent2[:point] + [p for p in parent1 if p not in parent2[:point]]
+        return child1, child2
 
-      // Evaluate and sort
-      const evaluated = population.map(s => ({
-        schedule: s,
-        fitness: calculateFitness(s)
-      })).sort((a, b) => b.fitness - a.fitness);
+    def mutate(schedule):
+        i, j = random.sample(range(len(schedule)), 2)
+        schedule[i], schedule[j] = schedule[j], schedule[i]
+        return schedule
 
-      const best = evaluated[0];
-      setGeneration(currentGen);
-      setBestFitness(best.fitness);
-      setSchedule(best.schedule);
-      history.push(best.fitness);
-      setFitnessHistory([...history]);
+    # ================================
+    # GENETIC ALGORITHM
+    # ================================
+    def genetic_algorithm(generations, population_size, crossover_rate, mutation_rate, elitism_size):
+        population = initialize_population(all_programs, population_size)
 
-      // Create new population
-      const newPop = evaluated.slice(0, params.elitismSize).map(e => e.schedule);
+        for _ in range(generations):
+            population = sorted(population, key=lambda s: fitness_function(s), reverse=True)
+            new_population = population[:elitism_size]
 
-      while (newPop.length < params.populationSize) {
-        const parent1 = evaluated[Math.floor(Math.random() * params.populationSize / 2)].schedule;
-        const parent2 = evaluated[Math.floor(Math.random() * params.populationSize / 2)].schedule;
+            while len(new_population) < population_size:
+                parent1, parent2 = random.choices(population[:10], k=2)
+                if random.random() < crossover_rate:
+                    child1, child2 = crossover(parent1, parent2)
+                else:
+                    child1, child2 = parent1.copy(), parent2.copy()
 
-        let [child1, child2] = Math.random() < params.crossoverRate 
-          ? crossover(parent1, parent2)
-          : [[...parent1], [...parent2]];
+                if random.random() < mutation_rate:
+                    child1 = mutate(child1)
+                if random.random() < mutation_rate:
+                    child2 = mutate(child2)
 
-        if (Math.random() < params.mutationRate) child1 = mutate(child1);
-        if (Math.random() < params.mutationRate) child2 = mutate(child2);
+                new_population.extend([child1, child2])
 
-        newPop.push(child1, child2);
-      }
+            population = new_population[:population_size]
 
-      population = newPop.slice(0, params.populationSize);
-      currentGen++;
-    }, 50);
-  };
+        return sorted(population, key=lambda s: fitness_function(s), reverse=True)[0]
 
-  const handleStart = () => {
-    setIsRunning(true);
-    runGeneticAlgorithm();
-  };
+    # ================================
+    # RUN THE ALGORITHM
+    # ================================
+    if st.button("🚀 Run Optimization"):
+        best_schedule = genetic_algorithm(GEN, POP, CO_R, MUT_R, EL_S)
+        total_rating = fitness_function(best_schedule)
+        avg_rating = total_rating / len(best_schedule)
 
-  const handleReset = () => {
-    setIsRunning(false);
-    setGeneration(0);
-    setBestFitness(0);
-    setSchedule([]);
-    setFitnessHistory([]);
-  };
+        # Prepare dataframe for display
+        df = pd.DataFrame({
+            "Time Slot": [f"{t:02d}:00" for t in all_time_slots],
+            "Program": best_schedule,
+            "Rating": [ratings[p][i] for i, p in enumerate(best_schedule)]
+        })
 
-  const getColorForProgram = (program) => {
-    const colors = {
-      'News': 'bg-blue-500',
-      'Drama': 'bg-purple-500',
-      'Comedy': 'bg-yellow-500',
-      'Sports': 'bg-green-500',
-      'Reality': 'bg-pink-500',
-      'Documentary': 'bg-orange-500'
-    };
-    return colors[program] || 'bg-gray-500';
-  };
+        st.subheader("✅ Optimal TV Schedule")
+        st.dataframe(df, use_container_width=True)
 
-  const maxFitness = Math.max(...fitnessHistory, 1);
+        st.write(f"**⭐ Total Ratings:** {total_rating:.2f}")
+        st.write(f"**📊 Average Rating per Slot:** {avg_rating:.2f}")
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <Tv className="w-10 h-10 text-purple-400" />
-            <h1 className="text-4xl font-bold text-white">TV Scheduling Optimizer</h1>
-          </div>
-          <p className="text-purple-300">Genetic Algorithm-Based Program Scheduling</p>
-        </div>
+        # ================================
+        # VISUALIZATION
+        # ================================
+        st.subheader("📈 Ratings by Time Slot")
+        fig, ax = plt.subplots()
+        ax.plot(df["Time Slot"], df["Rating"], marker='o')
+        ax.set_xlabel("Time Slot")
+        ax.set_ylabel("Rating")
+        ax.set_title("Program Ratings per Time Slot")
+        plt.xticks(rotation=45)
+        st.pyplot(fig)
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-green-400" />
-              <div>
-                <p className="text-purple-300 text-sm">Generation</p>
-                <p className="text-white text-2xl font-bold">{generation}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-blue-400" />
-              <div>
-                <p className="text-purple-300 text-sm">Best Fitness</p>
-                <p className="text-white text-2xl font-bold">{bestFitness.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-            <div className="flex items-center gap-3">
-              <Clock className="w-8 h-8 text-yellow-400" />
-              <div>
-                <p className="text-purple-300 text-sm">Time Slots</p>
-                <p className="text-white text-2xl font-bold">{timeSlots.length}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              onClick={handleStart}
-              disabled={isRunning}
-              className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-lg font-semibold transition-colors"
-            >
-              <Play className="w-5 h-5" />
-              Start Algorithm
-            </button>
-
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Reset
-            </button>
-
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-              Parameters
-            </button>
-          </div>
-
-          {showSettings && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(params).map(([key, value]) => (
-                <div key={key}>
-                  <label className="block text-purple-300 text-sm mb-2 capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </label>
-                  <input
-                    type="number"
-                    value={value}
-                    onChange={(e) => setParams({ ...params, [key]: parseFloat(e.target.value) })}
-                    className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white"
-                    disabled={isRunning}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Fitness Chart */}
-        {fitnessHistory.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
-            <h3 className="text-xl font-bold text-white mb-4">Fitness Progress</h3>
-            <div className="h-48 flex items-end gap-1">
-              {fitnessHistory.map((fitness, idx) => (
-                <div
-                  key={idx}
-                  className="flex-1 bg-gradient-to-t from-purple-500 to-blue-500 rounded-t transition-all"
-                  style={{ height: `${(fitness / maxFitness) * 100}%` }}
-                  title={`Gen ${idx}: ${fitness.toFixed(2)}`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Schedule Display */}
-        {schedule.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-4">Optimal Schedule</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {schedule.map((program, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white/20 rounded-lg p-4 border border-white/30 hover:bg-white/30 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-300 text-sm font-semibold">
-                        {String(timeSlots[idx]).padStart(2, '0')}:00 - {String(timeSlots[idx] + 1).padStart(2, '0')}:00
-                      </p>
-                      <p className="text-white text-lg font-bold">{program}</p>
-                    </div>
-                    <div className={`w-12 h-12 ${getColorForProgram(program)} rounded-full flex items-center justify-center text-white font-bold`}>
-                      {ratings[program]?.[idx]?.toFixed(1) || '0'}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Legend */}
-        <div className="mt-6 bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-          <h3 className="text-lg font-bold text-white mb-3">Program Types</h3>
-          <div className="flex flex-wrap gap-4">
-            {programs.map(program => (
-              <div key={program} className="flex items-center gap-2">
-                <div className={`w-4 h-4 ${getColorForProgram(program)} rounded`} />
-                <span className="text-purple-300">{program}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default TVScheduleGA;
+else:
+    st.info("👆 Please upload your `program_ratings.csv` file to start.")
