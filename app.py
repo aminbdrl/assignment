@@ -9,9 +9,7 @@ import random
 st.title("📺 TV Program Scheduling using Genetic Algorithm")
 
 st.markdown("""
-Aplikasi ini menggunakan **Genetic Algorithm (GA)** untuk menjadualkan program berdasarkan rating.
-Anda boleh ubah **Crossover Rate (CO_R)** dan **Mutation Rate (MUT_R)** untuk lihat kesan terhadap hasil jadual.
-""")
+
 
 # Load CSV (gunakan fail yang telah diubah)
 @st.cache_data
@@ -31,7 +29,7 @@ hours = df.columns[1:]
 # ------------------------------------------
 st.sidebar.header("⚙️ Genetic Algorithm Parameters")
 CO_R = st.sidebar.slider("Crossover Rate (CO_R)", 0.0, 0.95, 0.8)
-MUT_R = st.sidebar.slider("Mutation Rate (MUT_R)", 0.01, 0.05, 0.02)
+MUT_R = st.sidebar.slider("Mutation Rate (MUT_R)", 0.01, 0.05, 0.2)
 POP_SIZE = 10
 GENERATIONS = 20
 
