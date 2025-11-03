@@ -1,21 +1,4 @@
-import streamlit as st
 import csv
-
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-
-if uploaded_file:
-    reader = csv.reader(uploaded_file.read().decode('utf-8').splitlines())
-    header = next(reader)
-    program_ratings = {}
-    for row in reader:
-        program = row[0]
-        ratings = [float(x) for x in row[1:]]
-        program_ratings[program] = ratings
-    st.write("✅ File loaded successfully!")
-else:
-    st.warning("Please upload a CSV file to proceed.")
-
-
 
 # Function to read the CSV file and convert it to the desired format
 def read_csv_to_dict(file_path):
@@ -34,7 +17,7 @@ def read_csv_to_dict(file_path):
     return program_ratings
 
 # Path to the CSV file
-file_path = 'program_ratings.csv'
+file_path = '/content/program_ratings.csv'
 
 # Get the data in the required format
 program_ratings_dict = read_csv_to_dict(file_path)
