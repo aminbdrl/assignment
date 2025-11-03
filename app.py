@@ -35,7 +35,7 @@ hours = df.columns[1:]
 # ------------------------------------------
 st.sidebar.header("⚙️ Genetic Algorithm Parameters")
 CO_R = st.sidebar.slider("Crossover Rate (CO_R)", 0.0, 0.95, 0.9)
-MUT_R = st.sidebar.slider("Mutation Rate (MUT_R)", 0.01, 0.05, 0.4)
+MUT_R = st.sidebar.slider("Mutation Rate (MUT_R)", 0.01, 0.05, 0.04)
 POP_SIZE = 10
 GENERATIONS = 20
 
