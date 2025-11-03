@@ -15,7 +15,7 @@ if uploaded_file:
 else:
     st.warning("Please upload a CSV file to proceed.")
 
-import csv
+
 
 # Function to read the CSV file and convert it to the desired format
 def read_csv_to_dict(file_path):
