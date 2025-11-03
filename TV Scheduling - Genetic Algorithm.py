@@ -1,4 +1,7 @@
 import csv
+import random
+
+##################################### DEFINING PARAMETERS AND DATASET ################################################################
 
 # Function to read the CSV file and convert it to the desired format
 def read_csv_to_dict(file_path):
@@ -16,8 +19,8 @@ def read_csv_to_dict(file_path):
     
     return program_ratings
 
-# Path to the CSV file
-file_path = '/content/program_ratings.csv'
+# CORRECTED: Use relative path or just the filename
+file_path = 'program_ratings.csv'  # Changed from '/content/program_ratings.csv'
 
 # Get the data in the required format
 program_ratings_dict = read_csv_to_dict(file_path)
@@ -26,10 +29,6 @@ program_ratings_dict = read_csv_to_dict(file_path)
 for program, ratings in program_ratings_dict.items():
     print(f"'{program}': {ratings},")
 
-
-import random
-
-##################################### DEFINING PARAMETERS AND DATASET ################################################################
 # Sample rating programs dataset for each time slot.
 ratings = program_ratings_dict
 
@@ -78,9 +77,8 @@ def finding_best_schedule(all_schedules):
 # calling the pop func.
 all_possible_schedules = initialize_pop(all_programs, all_time_slots)
 
-# callin the schedule func.
+# calling the schedule func.
 best_schedule = finding_best_schedule(all_possible_schedules)
-
 
 ############################################# GENETIC ALGORITHM #############################################################################
 
@@ -103,9 +101,6 @@ def evaluate_fitness(schedule):
     return fitness_function(schedule)
 
 # genetic algorithms with parameters
-
-
-
 def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, crossover_rate=CO_R, mutation_rate=MUT_R, elitism_size=EL_S):
 
     population = [initial_schedule]
@@ -118,7 +113,7 @@ def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, cr
     for generation in range(generations):
         new_population = []
 
-        # Elitsm
+        # Elitism
         population.sort(key=lambda schedule: fitness_function(schedule), reverse=True)
         new_population.extend(population[:elitism_size])
 
