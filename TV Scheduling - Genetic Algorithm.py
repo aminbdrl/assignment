@@ -14,7 +14,7 @@ st.write("Upload your CSV file containing program ratings by time slot, and the 
 # ================================
 # UPLOAD CSV
 # ================================
-uploaded_file = st.file_uploader("📂 Upload your 'program_ratings.csv' file", type=["csv"])
+uploaded_file = st.file_uploader("'program_ratings.csv' file", type=["csv"])
 
 if uploaded_file is not None:
     # Read CSV into dictionary
