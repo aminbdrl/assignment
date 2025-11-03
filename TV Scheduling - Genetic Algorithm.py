@@ -1,3 +1,20 @@
+import streamlit as st
+import csv
+
+uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+
+if uploaded_file:
+    reader = csv.reader(uploaded_file.read().decode('utf-8').splitlines())
+    header = next(reader)
+    program_ratings = {}
+    for row in reader:
+        program = row[0]
+        ratings = [float(x) for x in row[1:]]
+        program_ratings[program] = ratings
+    st.write("✅ File loaded successfully!")
+else:
+    st.warning("Please upload a CSV file to proceed.")
+
 import csv
 
 # Function to read the CSV file and convert it to the desired format
