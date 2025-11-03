@@ -1,8 +1,5 @@
-pip install prettytable
-
 import csv
 import random
-from prettytable import PrettyTable   # ✅ For neat display (make sure to install: pip install prettytable)
 
 #######################################
 # READ CSV DATA
@@ -49,7 +46,6 @@ def fitness_function(schedule):
         total_rating += ratings[program][time_slot]
     return total_rating
 
-# Recursive initialization (may be heavy for large data)
 def initialize_pop(programs, time_slots):
     if not programs:
         return [[]]
@@ -80,9 +76,6 @@ def mutate(schedule):
     new_program = random.choice(all_programs)
     schedule[mutation_point] = new_program
     return schedule
-
-def evaluate_fitness(schedule):
-    return fitness_function(schedule)
 
 def genetic_algorithm(initial_schedule, generations=GEN, population_size=POP, crossover_rate=CO_R, mutation_rate=MUT_R, elitism_size=EL_S):
     population = [initial_schedule]
@@ -127,19 +120,20 @@ genetic_schedule = genetic_algorithm(initial_best_schedule, generations=GEN, pop
 final_schedule = initial_best_schedule + genetic_schedule[:rem_t_slots]
 
 #######################################
-# DISPLAY RESULTS (NEW)
+# DISPLAY RESULTS (NO LIBRARIES)
 #######################################
-table = PrettyTable()
-table.field_names = ["Time Slot", "Program", "Rating"]
+print("\n=== FINAL OPTIMAL SCHEDULE ===")
+print("--------------------------------------------------------")
+print(f"{'Time Slot':<15}{'Program':<20}{'Rating'}")
+print("--------------------------------------------------------")
 
 total_rating = 0
 for i, program in enumerate(final_schedule):
     time_slot = f"{all_time_slots[i]:02d}:00"
     program_rating = ratings[program][i]
     total_rating += program_rating
-    table.add_row([time_slot, program, f"{program_rating:.2f}"])
+    print(f"{time_slot:<15}{program:<20}{program_rating:.2f}")
 
-print("\n=== FINAL OPTIMAL SCHEDULE ===")
-print(table)
-print(f"\nTotal Ratings: {total_rating:.2f}")
-print("==================================================")
+print("--------------------------------------------------------")
+print(f"Total Ratings: {total_rating:.2f}")
+print("========================================================")
