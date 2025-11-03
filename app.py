@@ -1,3 +1,7 @@
+# ==========================================
+# Streamlit App: Scheduling using Genetic Algorithm
+# ==========================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -8,17 +12,16 @@ import random
 # ------------------------------------------
 st.title("📺 TV Program Scheduling using Genetic Algorithm")
 
-st.markdown("""
+st.markdown
 
-
-# Load CSV (gunakan fail yang telah diubah)
+# Load CSV (use the modified dataset)
 @st.cache_data
 def load_data():
     df = pd.read_csv("program_ratings_modified.csv")
     return df
 
 df = load_data()
-st.subheader("📊 Data Rating Program (Dari CSV)")
+st.subheader("📊 Program Rating Data (from CSV)")
 st.dataframe(df)
 
 programs = df["Type of Program"].tolist()
@@ -37,7 +40,7 @@ GENERATIONS = 20
 # 3. Genetic Algorithm Functions
 # ------------------------------------------
 def fitness(schedule, df):
-    # Kira jumlah rating untuk jadual tertentu
+    # Calculate total rating for a given schedule
     total = 0
     for h, prog in enumerate(schedule):
         total += df.loc[df["Type of Program"] == prog, df.columns[h + 1]].values[0]
@@ -89,18 +92,18 @@ def genetic_algorithm(df, CO_R, MUT_R, pop_size=POP_SIZE, generations=GENERATION
 # ------------------------------------------
 # 5. Run GA & Display Results
 # ------------------------------------------
-if st.button("🚀 Jalankan Genetic Algorithm"):
+if st.button("🚀 Run Genetic Algorithm"):
     best_schedule, best_fitness = genetic_algorithm(df, CO_R, MUT_R)
 
-    st.success(f"✅ Jadual terbaik dijumpai dengan fitness: {best_fitness:.2f}")
+    st.success(f"✅ Best schedule found with fitness: {best_fitness:.2f}")
     result = pd.DataFrame({
         "Hour": hours,
         "Program": best_schedule
     })
 
-    st.subheader("📅 Jadual Siaran Terbaik")
+    st.subheader("📅 Optimal TV Schedule")
     st.dataframe(result)
 
-    st.write("**Parameter Digunakan:**")
+    st.write("**Parameters Used:**")
     st.write(f"- Crossover Rate: {CO_R}")
     st.write(f"- Mutation Rate: {MUT_R}")
