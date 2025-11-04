@@ -10,13 +10,7 @@ import random
 # ------------------------------------------
 # 1. Load Dataset
 # ------------------------------------------
-st.title("📺 TV Program Scheduling using Genetic Algorithm")
-
-st.markdown("""
-This application uses a **Genetic Algorithm (GA)** to schedule TV programs based on their ratings.  
-You can test **three different trials** with various combinations of **Crossover Rate (CO_R)** and **Mutation Rate (MUT_R)** 
-to see how they affect the resulting schedule.
-""")
+st.title("TV Program Scheduling using Genetic Algorithm")
 
 # Load CSV (use the modified file)
 @st.cache_data
@@ -25,7 +19,7 @@ def load_data():
     return df
 
 df = load_data()
-st.subheader("📊 Program Rating Data")
+st.subheader("Program Rating Data")
 st.dataframe(df)
 
 programs = df["Type of Program"].tolist()
@@ -34,11 +28,11 @@ hours = df.columns[1:]
 # ------------------------------------------
 # 2. GA Parameters for 3 Trials
 # ------------------------------------------
-st.sidebar.header("⚙️ Genetic Algorithm Parameters (for 3 Trials)")
+st.sidebar.header(" Genetic Algorithm Parameters (for 3 Trials)")
 
 st.sidebar.markdown("### Trial 1")
 CO_R1 = st.sidebar.slider("Crossover Rate (CO_R1)", 0.0, 0.95, 0.8, 0.05)
-MUT_R1 = st.sidebar.slider("Mutation Rate (MUT_R1)", 0.01, 0.05, 0.2, 0.01)  # ✅ Default 0.2
+MUT_R1 = st.sidebar.slider("Mutation Rate (MUT_R1)", 0.01, 0.05, 0.2, 0.01)  # Default 0.2
 
 st.sidebar.markdown("### Trial 2")
 CO_R2 = st.sidebar.slider("Crossover Rate (CO_R2)", 0.0, 0.95, 0.6, 0.05)
@@ -123,17 +117,17 @@ if st.button("🚀 Run Genetic Algorithm for All Trials"):
     result3 = pd.DataFrame({"Hour": hours, "Program": best3})
 
     # Display results
-    st.subheader("📊 Trial 1 Results")
+    st.subheader(" Trial 1 Results")
     st.write(f"**Crossover Rate:** {CO_R1}, **Mutation Rate:** {MUT_R1}")
     st.write(f"**Total Fitness:** {fit1:.2f}")
     st.dataframe(result1)
 
-    st.subheader("📊 Trial 2 Results")
+    st.subheader(" Trial 2 Results")
     st.write(f"**Crossover Rate:** {CO_R2}, **Mutation Rate:** {MUT_R2}")
     st.write(f"**Total Fitness:** {fit2:.2f}")
     st.dataframe(result2)
 
-    st.subheader("📊 Trial 3 Results")
+    st.subheader(" Trial 3 Results")
     st.write(f"**Crossover Rate:** {CO_R3}, **Mutation Rate:** {MUT_R3}")
     st.write(f"**Total Fitness:** {fit3:.2f}")
     st.dataframe(result3)
@@ -145,5 +139,5 @@ if st.button("🚀 Run Genetic Algorithm for All Trials"):
         "Mutation Rate": [MUT_R1, MUT_R2, MUT_R3],
         "Total Fitness": [fit1, fit2, fit3]
     })
-    st.subheader("📈 Summary Comparison of All Trials")
+    st.subheader(" Summary Comparison of All Trials")
     st.dataframe(summary)
