@@ -10,11 +10,12 @@ import random
 # ------------------------------------------
 # 1. Load Dataset
 # ------------------------------------------
-st.title("TV Program Scheduling using Genetic Algorithm")
+st.title("📺 TV Program Scheduling using Genetic Algorithm")
 
 st.markdown("""
 This application uses a **Genetic Algorithm (GA)** to schedule TV programs based on their ratings.  
-You can adjust the **Crossover Rate (CO_R)** and **Mutation Rate (MUT_R)** to observe how they affect the generated schedule.
+You can test **three different trials** with various combinations of **Crossover Rate (CO_R)** and **Mutation Rate (MUT_R)** 
+to see how they affect the resulting schedule.
 """)
 
 # Load CSV (use the modified file)
@@ -24,18 +25,29 @@ def load_data():
     return df
 
 df = load_data()
-st.subheader("Program Rating Data")
+st.subheader("📊 Program Rating Data")
 st.dataframe(df)
 
 programs = df["Type of Program"].tolist()
 hours = df.columns[1:]
 
 # ------------------------------------------
-# 2. Parameter Input
+# 2. GA Parameters for 3 Trials
 # ------------------------------------------
-st.sidebar.header("Genetic Algorithm Parameters")
-CO_R = st.sidebar.slider("Crossover Rate (CO_R)", 0.0, 0.95, 0.8)
-MUT_R = st.sidebar.slider("Mutation Rate (MUT_R)", 0.01, 0.05, 0.2)
+st.sidebar.header("⚙️ Genetic Algorithm Parameters (for 3 Trials)")
+
+st.sidebar.markdown("### Trial 1")
+CO_R1 = st.sidebar.slider("Crossover Rate (CO_R1)", 0.0, 0.95, 0.8, 0.05)
+MUT_R1 = st.sidebar.slider("Mutation Rate (MUT_R1)", 0.01, 0.05, 0.2, 0.01)  # ✅ Default 0.2
+
+st.sidebar.markdown("### Trial 2")
+CO_R2 = st.sidebar.slider("Crossover Rate (CO_R2)", 0.0, 0.95, 0.6, 0.05)
+MUT_R2 = st.sidebar.slider("Mutation Rate (MUT_R2)", 0.01, 0.05, 0.03, 0.01)
+
+st.sidebar.markdown("### Trial 3")
+CO_R3 = st.sidebar.slider("Crossover Rate (CO_R3)", 0.0, 0.95, 0.9, 0.05)
+MUT_R3 = st.sidebar.slider("Mutation Rate (MUT_R3)", 0.01, 0.05, 0.04, 0.01)
+
 POP_SIZE = 10
 GENERATIONS = 20
 
@@ -71,9 +83,6 @@ def mutate(schedule, rate):
             schedule[i] = random.choice(programs)
     return schedule
 
-# ------------------------------------------
-# 4. GA Main Loop
-# ------------------------------------------
 def genetic_algorithm(df, CO_R, MUT_R, pop_size=POP_SIZE, generations=GENERATIONS):
     """Run the genetic algorithm for the scheduling problem."""
     population = [random.choices(programs, k=len(hours)) for _ in range(pop_size)]
@@ -97,21 +106,44 @@ def genetic_algorithm(df, CO_R, MUT_R, pop_size=POP_SIZE, generations=GENERATION
     return best, best_fit
 
 # ------------------------------------------
-# 5. Run GA & Display Results
+# 4. Run All 3 Trials
 # ------------------------------------------
-if st.button("Run Genetic Algorithm"):
-    best_schedule, best_fitness = genetic_algorithm(df, CO_R, MUT_R)
+if st.button("🚀 Run Genetic Algorithm for All Trials"):
 
-    st.success(f"Best schedule found with total fitness: {best_fitness:.2f}")
-    result = pd.DataFrame({
-        "Hour": hours,
-        "Program": best_schedule
+    # Trial 1
+    best1, fit1 = genetic_algorithm(df, CO_R1, MUT_R1)
+    result1 = pd.DataFrame({"Hour": hours, "Program": best1})
+
+    # Trial 2
+    best2, fit2 = genetic_algorithm(df, CO_R2, MUT_R2)
+    result2 = pd.DataFrame({"Hour": hours, "Program": best2})
+
+    # Trial 3
+    best3, fit3 = genetic_algorithm(df, CO_R3, MUT_R3)
+    result3 = pd.DataFrame({"Hour": hours, "Program": best3})
+
+    # Display results
+    st.subheader("📊 Trial 1 Results")
+    st.write(f"**Crossover Rate:** {CO_R1}, **Mutation Rate:** {MUT_R1}")
+    st.write(f"**Total Fitness:** {fit1:.2f}")
+    st.dataframe(result1)
+
+    st.subheader("📊 Trial 2 Results")
+    st.write(f"**Crossover Rate:** {CO_R2}, **Mutation Rate:** {MUT_R2}")
+    st.write(f"**Total Fitness:** {fit2:.2f}")
+    st.dataframe(result2)
+
+    st.subheader("📊 Trial 3 Results")
+    st.write(f"**Crossover Rate:** {CO_R3}, **Mutation Rate:** {MUT_R3}")
+    st.write(f"**Total Fitness:** {fit3:.2f}")
+    st.dataframe(result3)
+
+    # Compare summary
+    summary = pd.DataFrame({
+        "Trial": ["Trial 1", "Trial 2", "Trial 3"],
+        "Crossover Rate": [CO_R1, CO_R2, CO_R3],
+        "Mutation Rate": [MUT_R1, MUT_R2, MUT_R3],
+        "Total Fitness": [fit1, fit2, fit3]
     })
-
-    st.subheader("Optimal Broadcast Schedule")
-    st.dataframe(result)
-
-    st.write("**Parameters Used:**")
-    st.write(f"- Crossover Rate: {CO_R}")
-    st.write(f"- Mutation Rate: {MUT_R}")
-
+    st.subheader("📈 Summary Comparison of All Trials")
+    st.dataframe(summary)
