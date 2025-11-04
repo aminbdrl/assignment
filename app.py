@@ -24,7 +24,7 @@ def load_data():
     return df
 
 df = load_data()
-st.subheader("📊 Program Rating Data (From CSV)")
+st.subheader("📊 Program Rating Data")
 st.dataframe(df)
 
 programs = df["Type of Program"].tolist()
