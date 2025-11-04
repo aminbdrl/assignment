@@ -10,7 +10,7 @@ import random
 # ------------------------------------------
 # 1. Load Dataset
 # ------------------------------------------
-st.title("📺 TV Program Scheduling using Genetic Algorithm")
+st.title("TV Program Scheduling using Genetic Algorithm")
 
 st.markdown("""
 This application uses a **Genetic Algorithm (GA)** to schedule TV programs based on their ratings.  
@@ -24,7 +24,7 @@ def load_data():
     return df
 
 df = load_data()
-st.subheader("📊 Program Rating Data")
+st.subheader("Program Rating Data")
 st.dataframe(df)
 
 programs = df["Type of Program"].tolist()
@@ -99,16 +99,16 @@ def genetic_algorithm(df, CO_R, MUT_R, pop_size=POP_SIZE, generations=GENERATION
 # ------------------------------------------
 # 5. Run GA & Display Results
 # ------------------------------------------
-if st.button("🚀 Run Genetic Algorithm"):
+if st.button("Run Genetic Algorithm"):
     best_schedule, best_fitness = genetic_algorithm(df, CO_R, MUT_R)
 
-    st.success(f"✅ Best schedule found with total fitness: {best_fitness:.2f}")
+    st.success(f"Best schedule found with total fitness: {best_fitness:.2f}")
     result = pd.DataFrame({
         "Hour": hours,
         "Program": best_schedule
     })
 
-    st.subheader("📅 Optimal Broadcast Schedule")
+    st.subheader("Optimal Broadcast Schedule")
     st.dataframe(result)
 
     st.write("**Parameters Used:**")
