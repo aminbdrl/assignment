@@ -102,7 +102,7 @@ def genetic_algorithm(df, CO_R, MUT_R, pop_size=POP_SIZE, generations=GENERATION
 # ------------------------------------------
 # 4. Run All 3 Trials
 # ------------------------------------------
-if st.button("🚀 Run Genetic Algorithm for All Trials"):
+if st.button(" Run Genetic Algorithm for All Trials"):
 
     # Trial 1
     best1, fit1 = genetic_algorithm(df, CO_R1, MUT_R1)
